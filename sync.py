@@ -131,9 +131,9 @@ class DirectorySyncer:
 			# In case of dryRun, Show the differences and quit
 			if dryRun:
 				for path in leftOnly:
-					logging.info("Left only: %s" % path)
+					print("Left only: %s" % path)
 				for path in rightOnly:
-					logging.info("Right only: %s" % path)
+					print("Right only: %s" % path)
 
 				# Show needed disk space
 				self.__showNeededDiskSpace(pointA, pointB, leftOnly, rightOnly)
