@@ -59,9 +59,12 @@ class DirectorySyncer:
 
 	def __calculateDiskSpace(self, list):
 		diskSpace = 0
-		for file in list:
-			diskSpace += os.path.getsize(file)
-		return diskSpace / (1024*1024.0)
+		for x in list:
+			diskSpace += os.path.getsize(x)
+			if os.path.isdir(x):
+				content = [os.path.join(x, f) for f in os.listdir(x)]
+				diskSpace += self.__calculateDiskSpace(content)
+		return diskSpace
 
 	def __askYesNoQuestion(self, message):
 		yes = set(["yes", "y", ""])
@@ -97,10 +100,14 @@ class DirectorySyncer:
 				raise e
 
 	def __showNeededDiskSpace(self, pointA, pointB, leftOnly, rightOnly):
-		logging.info("Needed disk space for sync point '%s' is %.2f MB" % (pointA, self.__calculateDiskSpace(rightOnly)))
-		logging.info("Needed disk space for sync point '%s' is %.2f MB" % (pointB, self.__calculateDiskSpace(leftOnly)))
+		MB = 1024 * 1024.0
+		logging.info("Needed disk space for sync point '%s' is %.2f MB" % (pointA, self.__calculateDiskSpace(rightOnly) / MB))
+		logging.info("Needed disk space for sync point '%s' is %.2f MB" % (pointB, self.__calculateDiskSpace(leftOnly)) / MB)
 
 	def sync(self, pointA, pointB, dryRun=False, verbose=False):
+		print(self.__calculateDiskSpace(["/media/mybook/Photos/TODO"]))
+		return
+
 		if dryRun:
 			logging.info("Syncing between '%s' and '%s' (Output only)" % (pointA, pointB))
 		else:
