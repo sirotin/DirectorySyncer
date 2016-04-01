@@ -160,6 +160,7 @@ class DirectorySyncer:
 			logging.info("Start processing %d differences (%d are missing in '%s' and %d are missing in '%s')" % (leftOnlyLen + rightOnlyLen, rightOnlyLen, pointA, leftOnlyLen, pointB))
 			self.__copyMissingFiles(pointA, pointB, leftOnly)
 			self.__copyMissingFiles(pointB, pointA, rightOnly)
+			logging.info("Done!")
 
 		except Exception as e:
 			logging.error(e.args[0])
