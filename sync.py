@@ -99,15 +99,23 @@ class DirectorySyncer:
 				shutil.rmtree(dst)
 				raise e
 
+	def __formatDiskSpace(self, space):
+		KB = 1024.0
+		MB = 1024 * KB
+		GB = 1024 * MB
+
+		if space < 10 * MB:
+			return "%.2f KB" % (space / KB)
+		if (space < GB):
+			return "%.2f MB" % (space / MB)
+
+		return "%.2f GB" % (space / GB)
+
 	def __showNeededDiskSpace(self, pointA, pointB, leftOnly, rightOnly):
-		MB = 1024 * 1024.0
-		logging.info("Needed disk space for sync point '%s' is %.2f MB" % (pointA, self.__calculateDiskSpace(rightOnly) / MB))
-		logging.info("Needed disk space for sync point '%s' is %.2f MB" % (pointB, self.__calculateDiskSpace(leftOnly)) / MB)
+		logging.info("Needed disk space for sync point '%s' is %s" % (pointA, self.__formatDiskSpace(self.__calculateDiskSpace(rightOnly))))
+		logging.info("Needed disk space for sync point '%s' is %s" % (pointB, self.__formatDiskSpace(self.__calculateDiskSpace(leftOnly))))
 
 	def sync(self, pointA, pointB, dryRun=False, verbose=False):
-		print(self.__calculateDiskSpace(["/media/mybook/Photos/TODO"]))
-		return
-
 		if dryRun:
 			logging.info("Syncing between '%s' and '%s' (Output only)" % (pointA, pointB))
 		else:
