@@ -71,7 +71,7 @@ class DirectorySyncer:
 		no = set(["no", "n"])
 
 		while True:
-			print("%s [Y/N] " % message)
+			sys.stdout.write("%s [Y/N] " % message)
 			choice = raw_input().lower()
 			if choice in yes:
 				return True
