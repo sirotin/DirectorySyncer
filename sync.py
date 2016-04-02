@@ -128,15 +128,15 @@ class DirectorySyncer:
 			rightOnlyLen = len(rightOnly)
 			logging.info("Found %d differences (%d are missing in '%s' and %d are missing in '%s')" % (leftOnlyLen + rightOnlyLen, rightOnlyLen, pointA, leftOnlyLen, pointB))
 
+			# Show needed disk space
+			self.__showNeededDiskSpace(pointA, pointB, leftOnly, rightOnly)
+
 			# In case of dryRun, Show the differences and quit
 			if dryRun:
 				for path in leftOnly:
 					print("Left only: %s" % path)
 				for path in rightOnly:
 					print("Right only: %s" % path)
-
-				# Show needed disk space
-				self.__showNeededDiskSpace(pointA, pointB, leftOnly, rightOnly)
 
 				return True
 
