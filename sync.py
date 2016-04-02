@@ -57,13 +57,14 @@ class DirectorySyncer:
 			list[i] = list[i][n:]
 		return list
 
-	def __calculateDiskSpace(self, list):
+	def __calculateDiskSpace(self, path, list):
 		diskSpace = 0
 		for x in list:
-			diskSpace += os.path.getsize(x)
-			if os.path.isdir(x):
-				content = [os.path.join(x, f) for f in os.listdir(x)]
-				diskSpace += self.__calculateDiskSpace(content)
+			fullX = os.path.join(path, x)
+			diskSpace += os.path.getsize(fullX)
+			if os.path.isdir(fullX):
+				content = [os.path.join(fullX, f) for f in os.listdir(fullX)]
+				diskSpace += self.__calculateDiskSpace(path, content)
 		return diskSpace
 
 	def __askYesNoQuestion(self, message):
@@ -112,8 +113,8 @@ class DirectorySyncer:
 		return "%.2f GB" % (space / GB)
 
 	def __showNeededDiskSpace(self, pointA, pointB, leftOnly, rightOnly):
-		logging.info("Needed disk space for sync point '%s' is %s" % (pointA, self.__formatDiskSpace(self.__calculateDiskSpace(rightOnly))))
-		logging.info("Needed disk space for sync point '%s' is %s" % (pointB, self.__formatDiskSpace(self.__calculateDiskSpace(leftOnly))))
+		logging.info("Needed disk space for sync point '%s' is %s" % (pointA, self.__formatDiskSpace(self.__calculateDiskSpace(pointB, rightOnly))))
+		logging.info("Needed disk space for sync point '%s' is %s" % (pointB, self.__formatDiskSpace(self.__calculateDiskSpace(pointA, leftOnly))))
 
 	def sync(self, pointA, pointB, dryRun=False, verbose=False):
 		if dryRun:
@@ -128,15 +129,19 @@ class DirectorySyncer:
 			rightOnlyLen = len(rightOnly)
 			logging.info("Found %d differences (%d are missing in '%s' and %d are missing in '%s')" % (leftOnlyLen + rightOnlyLen, rightOnlyLen, pointA, leftOnlyLen, pointB))
 
+			# Remove base path from results
+			leftOnly = self.__removeRootLocation(pointA, leftOnly)
+			rightOnly = self.__removeRootLocation(pointB, rightOnly)
+
 			# Show needed disk space
 			self.__showNeededDiskSpace(pointA, pointB, leftOnly, rightOnly)
 
 			# In case of dryRun, Show the differences and quit
 			if dryRun:
 				for path in leftOnly:
-					print("Left only: %s" % path)
+					print("Left only: %s" % os.path.join(pointA, path))
 				for path in rightOnly:
-					print("Right only: %s" % path)
+					print("Right only: %s" % os.path.join(pointB, path))
 
 				return True
 
@@ -147,10 +152,6 @@ class DirectorySyncer:
 
 			# Show needed disk space
 			self.__showNeededDiskSpace(pointA, pointB, leftOnly, rightOnly)
-
-			# Remove base path from results
-			leftOnly = self.__removeRootLocation(pointA, leftOnly)
-			rightOnly = self.__removeRootLocation(pointB, rightOnly)
 
 			# In case of verbose flag, recalculate number of differences
 			if verbose:
