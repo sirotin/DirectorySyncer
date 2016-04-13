@@ -89,7 +89,7 @@ class DirectorySyncer:
 			src = os.path.join(fromPath, file)
 			dst = os.path.join(toPath, file)
 
-			logging.debug("Copying '%s' to '%s'" % (src, dst))
+			logging.debug("Copying %s (%s)" % (src, self.__formatDiskSpace(os.path.getsize(src))))
 			try:
 				if os.path.isdir(src):
 					shutil.copytree(src, dst)
