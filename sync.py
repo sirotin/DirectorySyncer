@@ -150,8 +150,8 @@ class DirectorySyncer:
 				leftOnly = self.__verboseSelectFromList(pointA, pointB, leftOnly)
 				rightOnly = self.__verboseSelectFromList(pointB, pointA, rightOnly)
 
-			# Show needed disk space
-			self.__showNeededDiskSpace(pointA, pointB, leftOnly, rightOnly)
+				# Show needed disk space
+				self.__showNeededDiskSpace(pointA, pointB, leftOnly, rightOnly)
 
 			# In case of verbose flag, recalculate number of differences
 			if verbose:
