@@ -57,6 +57,9 @@ class DirectorySyncer:
 			list[i] = list[i][n:]
 		return list
 
+	def __getFileSizeStr(self, path):
+		return self.__formatDiskSpace(os.path.getsize(path))
+
 	def __calculateDiskSpace(self, path, list):
 		diskSpace = 0
 		for x in list:
@@ -81,8 +84,13 @@ class DirectorySyncer:
 			else:
 				print("Please response with a valid answer.")
 
+	def __buildYesNoQuestion(self, fromPath, toPath, file):
+		f = os.path.join(fromPath, file)
+		t = os.path.join(toPath, file)
+		return self.__askYesNoQuestion("Copy from '%s' to '%s' (%s) ? " % (f, t, self.__getFileSizeStr(f)))
+
 	def __verboseSelectFromList(self, fromPath, toPath, list):
-		return [x for x in list if self.__askYesNoQuestion("Copy from '%s' to '%s' ?" % (os.path.join(fromPath, x), os.path.join(toPath, x)))]
+		return [x for x in list if self.__buildYesNoQuestion(fromPath, toPath, x)]
 
 	# Note: Recursive function, enters each directory and copies each file seperately
 	def __copyMissingFiles(self, fromPath, toPath, list, dryRun):
@@ -100,7 +108,7 @@ class DirectorySyncer:
 					recursiveList = os.listdir(src)
 					self.__copyMissingFiles(src, dst, recursiveList)
 				else:
-					logging.info("Copying '%s' to '%s' (%s)" % (src, dst, self.__formatDiskSpace(os.path.getsize(src))))
+					logging.info("Copying '%s' to '%s' (%s)" % (src, dst, self.__getFileSizeStr(src)))
 					if not dryRun:
 						shutil.copy(src, dst)
 			except Exception as e:
