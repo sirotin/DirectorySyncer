@@ -84,16 +84,22 @@ class DirectorySyncer:
 	def __verboseSelectFromList(self, fromPath, toPath, list):
 		return [x for x in list if self.__askYesNoQuestion("Copy from '%s' to '%s' ?" % (os.path.join(fromPath, x), os.path.join(toPath, x)))]
 
+	# Note: Recursive function, enters each directory and copies each file seperately
 	def __copyMissingFiles(self, fromPath, toPath, list):
 		for file in list:
 			src = os.path.join(fromPath, file)
 			dst = os.path.join(toPath, file)
 
-			logging.debug("Copying %s (%s)" % (src, self.__formatDiskSpace(os.path.getsize(src))))
 			try:
 				if os.path.isdir(src):
-					shutil.copytree(src, dst)
+					# Create the destination directory
+					os.mkdir(dst)
+
+					# Recursive call to copy all directory content
+					recursiveList = os.listdir(src)
+					self.__copyMissingFiles(src, dst, recursiveList)
 				else:
+					logging.debug("Copying %s (%s)" % (src, self.__formatDiskSpace(os.path.getsize(src))))
 					shutil.copy(src, dst)
 			except Exception as e:
 				# In case of exception, we want to remove dst in order to avoid partially copied files
