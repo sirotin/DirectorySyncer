@@ -85,7 +85,7 @@ class DirectorySyncer:
 		return [x for x in list if self.__askYesNoQuestion("Copy from '%s' to '%s' ?" % (os.path.join(fromPath, x), os.path.join(toPath, x)))]
 
 	# Note: Recursive function, enters each directory and copies each file seperately
-	def __copyMissingFiles(self, fromPath, toPath, list):
+	def __copyMissingFiles(self, fromPath, toPath, list, dryRun):
 		for file in list:
 			src = os.path.join(fromPath, file)
 			dst = os.path.join(toPath, file)
@@ -93,14 +93,16 @@ class DirectorySyncer:
 			try:
 				if os.path.isdir(src):
 					# Create the destination directory
-					os.mkdir(dst)
+					if not dryRun:
+						os.mkdir(dst)
 
 					# Recursive call to copy all directory content
 					recursiveList = os.listdir(src)
 					self.__copyMissingFiles(src, dst, recursiveList)
 				else:
-					logging.debug("Copying %s (%s)" % (src, self.__formatDiskSpace(os.path.getsize(src))))
-					shutil.copy(src, dst)
+					logging.info("Copying '%s' to '%s' (%s)" % (src, dst, self.__formatDiskSpace(os.path.getsize(src))))
+					if not dryRun:
+						shutil.copy(src, dst)
 			except Exception as e:
 				# In case of exception, we want to remove dst in order to avoid partially copied files
 				shutil.rmtree(dst)
@@ -124,9 +126,9 @@ class DirectorySyncer:
 
 	def sync(self, pointA, pointB, dryRun=False, verbose=False):
 		if dryRun:
-			logging.info("Syncing between '%s' and '%s' (Output only)" % (pointA, pointB))
-		else:
-			logging.info("Syncing between '%s' and '%s'" % (pointA, pointB))
+			logging.warn("DRY-RUN - No actual copies will occur !!!")
+
+		logging.info("Syncing between '%s' and '%s'" % (pointA, pointB))
 
 		try:
 			# Create two lists contains the differences between the given points
@@ -142,31 +144,21 @@ class DirectorySyncer:
 			# Show needed disk space
 			self.__showNeededDiskSpace(pointA, pointB, leftOnly, rightOnly)
 
-			# In case of dryRun, Show the differences and quit
-			if dryRun:
-				for path in leftOnly:
-					print("Left only: %s" % os.path.join(pointA, path))
-				for path in rightOnly:
-					print("Right only: %s" % os.path.join(pointB, path))
-
-				return True
-
 			# In case of verbose flag, ask the user what to do
-			if verbose:
+			if (not dryRun) and verbose:
 				leftOnly = self.__verboseSelectFromList(pointA, pointB, leftOnly)
 				rightOnly = self.__verboseSelectFromList(pointB, pointA, rightOnly)
 
 				# Show needed disk space
 				self.__showNeededDiskSpace(pointA, pointB, leftOnly, rightOnly)
 
-			# In case of verbose flag, recalculate number of differences
-			if verbose:
+				# Recalculate number of differences
 				leftOnlyLen = len(leftOnly)
 				rightOnlyLen = len(rightOnly)
 			
 			logging.info("Start processing %d differences (%d are missing in '%s' and %d are missing in '%s')" % (leftOnlyLen + rightOnlyLen, rightOnlyLen, pointA, leftOnlyLen, pointB))
-			self.__copyMissingFiles(pointA, pointB, leftOnly)
-			self.__copyMissingFiles(pointB, pointA, rightOnly)
+			self.__copyMissingFiles(pointA, pointB, leftOnly, dryRun)
+			self.__copyMissingFiles(pointB, pointA, rightOnly, dryRun)
 			logging.info("Done!")
 
 		except Exception as e:
