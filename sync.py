@@ -106,7 +106,7 @@ class DirectorySyncer:
 
 					# Recursive call to copy all directory content
 					recursiveList = os.listdir(src)
-					self.__copyMissingFiles(src, dst, recursiveList)
+					self.__copyMissingFiles(src, dst, recursiveList, dryRun)
 				else:
 					logging.info("Copying '%s' to '%s' (%s)" % (src, dst, self.__getFileSizeStr(src)))
 					if not dryRun:
