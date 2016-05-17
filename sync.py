@@ -34,6 +34,22 @@ class DirectorySyncer:
 		leftOnly = self.__convertToFullPath(left, leftOnly)
 		rightOnly = self.__convertToFullPath(right, rightOnly)
 
+		# Go over all the files and make sure that their sizes match
+		commonFiles = self.__removeSpecial(result.common_files)
+		for file in commonFiles:
+			leftPath = os.path.join(left, file)
+			leftFileSize = os.path.getsize(leftPath)
+
+			rightPath = os.path.join(right, file)
+			rightFileSize = os.path.getsize(rightPath)
+
+			if leftFileSize > rightFileSize:
+				logging.warn("Problem found: Size of '%s' (%s) is bigger than '%s' (%s)" % (leftPath, self.__formatDiskSpace(leftFileSize), rightPath, self.__formatDiskSpace(rightFileSize)))
+				leftOnly.append(leftPath)
+			elif rightFileSize > leftFileSize:
+				logging.warn("Problem found: Size of '%s' (%s) is bigger than '%s' (%s)" % (rightPath, self.__formatDiskSpace(rightFileSize), leftPath, self.__formatDiskSpace(leftFileSize)))
+				rightOnly.append(rightPath)
+
 		# Get common dirs for recursive call
 		dirs = self.__removeSpecial(result.common_dirs)
 		for dir in dirs:
@@ -101,6 +117,10 @@ class DirectorySyncer:
 		for file in list:
 			src = os.path.join(fromPath, file)
 			dst = os.path.join(toPath, file)
+
+			# In case destination file exists, remove it...
+			if (not dryRun) and os.path.exists(dst):
+				shutil.rmtree(dst)
 
 			try:
 				if os.path.isdir(src):
