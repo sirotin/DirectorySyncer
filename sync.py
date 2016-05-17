@@ -120,7 +120,7 @@ class DirectorySyncer:
 
 			# In case destination file exists, remove it...
 			if (not dryRun) and os.path.exists(dst):
-				shutil.rmtree(dst)
+				os.remove(dst)
 
 			try:
 				if os.path.isdir(src):
@@ -137,7 +137,11 @@ class DirectorySyncer:
 						shutil.copy(src, dst)
 			except Exception as e:
 				# In case of exception, we want to remove dst in order to avoid partially copied files
-				shutil.rmtree(dst)
+				if not dryRun:
+					if os.path.isdir(dst):
+						shutil.rmtree(dst)
+					else:
+						os.remove(dst)
 				raise e
 
 	def __formatDiskSpace(self, space):
